@@ -16,6 +16,23 @@ esp32:
 logger:
   level: DEBUG
 
+# Global variables to track the current volume and mute state
+globals:
+  - id: current_volume
+    type: float
+    restore_value: yes
+    initial_value: '0.15'
+
+  - id: previous_volume
+    type: float
+    restore_value: no
+    initial_value: '0.15'
+
+  - id: is_muted
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
 # Enable Home Assistant API
 api:
   encryption:
