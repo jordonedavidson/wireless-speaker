@@ -173,3 +173,14 @@ script:
             - logger.log: "Resetting device..."
             - button.press: restart_button
 
+# Automation to detect simultaneous presses of the volume up/down buttons
+interval:
+  - interval: 500ms
+    then:
+      - if:
+          condition:
+            and:
+              - binary_sensor.is_on: volume_up_btn
+              - binary_sensor.is_on: volume_down_btn
+          then:
+            - script.execute: toggle_mute
