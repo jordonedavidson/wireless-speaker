@@ -74,6 +74,12 @@ media_player:
     id: wireless_speaker # The ID of the media player
     name: None  # Uses the friendly name of the device.
 
+# Reset button
+button:
+  - platform: restart
+    name: "Restart ESP"
+    id: restart_button
+
 # Binary sensors for the volume up and down buttons.
 binary_sensor:
   - platform: gpio
@@ -110,4 +116,60 @@ binary_sensor:
         then:
           - script.execute: check_reset
 
-   
+# Scripts for the volume control
+script:
+  - id: volume_up
+    then:
+      - if:
+          condition:
+            lambda: 'return !id(is_muted);'
+          then:
+            - lambda: |-
+                id(current_volume) = std::min(1.0f, id(current_volume) + 0.05f);
+            - media_player.volume_set:
+                id: wireless_speaker
+                volume: !lambda 'return id(current_volume);'
+
+  - id: volume_down
+    then:
+      - if:
+          condition:
+            lambda: 'return !id(is_muted);'
+          then:
+            - lambda: |-
+                id(current_volume) = std::max(0.0f, id(current_volume) - 0.05f);
+            - media_player.volume_set:
+                id: wireless_speaker
+                volume: !lambda 'return id(current_volume);'
+
+  - id: toggle_mute
+    then:
+      - if:
+          condition:
+            lambda: 'return id(is_muted);'
+          then:
+            - lambda: |-
+                id(current_volume) = id(previous_volume);
+                id(is_muted) = false;
+            - media_player.volume_set:
+                id: wireless_speaker
+                volume: !lambda 'return id(current_volume);'
+          else:
+            - lambda: |-
+                id(previous_volume) = id(current_volume);
+                id(is_muted) = true;
+            - media_player.volume_set:
+                id: wireless_speaker
+                volume: 0.0
+
+  - id: check_reset
+    then:
+      - if:
+          condition:
+            and:
+              - binary_sensor.is_on: volume_up_hold
+              - binary_sensor.is_on: volume_down_hold
+          then:
+            - logger.log: "Resetting device..."
+            - button.press: restart_button
+
