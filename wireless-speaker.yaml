@@ -83,7 +83,7 @@ button:
 # Binary sensors for the volume up and down buttons.
 binary_sensor:
   - platform: gpio
-    pin: GPIO32
+    pin: GPIO17
     name: "Volume Up Button"
     id: volume_up_btn
     on_press:
@@ -91,7 +91,7 @@ binary_sensor:
         - script.execute: volume_up
 
   - platform: gpio
-    pin: GPIO33
+    pin: GPIO16
     name: "Volume Down Button"
     id: volume_down_btn
     on_press:
@@ -99,7 +99,7 @@ binary_sensor:
         - script.execute: volume_down
 
   - platform: gpio
-    pin: GPIO32
+    pin: GPIO17
     id: volume_up_hold
     on_multi_click:
       - timing:
@@ -108,7 +108,7 @@ binary_sensor:
           - script.execute: check_reset
 
   - platform: gpio
-    pin: GPIO33
+    pin: GPIO16
     id: volume_down_hold
     on_multi_click:
       - timing:
