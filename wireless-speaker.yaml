@@ -5,7 +5,7 @@ esphome:
   on_boot:
     priority: -100 # Run after initialization
     then:
-      - media_player.volume_set: 
+      - speaker.volume_set: 
           id: wireless_speaker
           volume: 0.15
 
@@ -48,12 +48,66 @@ i2s_audio:
   i2s_lrclk_pin: GPIO27  # Pin for Left/Right Clock 
   i2s_bclk_pin: GPIO25  # Pin for Bit Clock 
 
-media_player: 
+speaker: 
   - platform: i2s_audio  # Defines a media player using I2S audio  
     dac_type: external  # Specifies that an external DAC is used 
     i2s_dout_pin: GPIO26  # Pin for Data Out 
     i2s_audio_id: dac_connect
-    mode: stereo
     id: wireless_speaker # The ID of the media player
-    name: None  # Uses the friendly name of the device.
-   
+    channel: stereo
+  - platform: mixer
+    id: wireless_speaker_mixer_id
+    output_speaker: wireless_speaker
+    source_speakers: 
+      - id: wireless_announcement_mixer_input
+      - id: wireless_media_mixer_input
+  - platform: resampler
+    id: wireless_media_resampler_input
+    output_speaker: wireless_media_mixer_input
+  - platform: resampler
+    id: wireless_announcement_resampler_input
+    output_speaker: wireless_announcement_mixer_input
+
+# Media Player
+media_player:
+  - platform: speaker
+    name: "Player Speaker"
+    id: player_speaker_id
+    media_pipeline: 
+      speaker: wireless_media_resampler_input
+      num_channels: 2
+    announcement_pipeline: 
+      speaker: wireless_announcement_resampler_input
+      num_channels: 1
+
+# Reset button
+button:
+  - platform: restart
+    name: "Restart ESP"
+    id: restart_button
+
+# Binary sensors for the volume up and down buttons.
+binary_sensor:
+  - platform: gpio
+    pin: 
+      number: GPIO18
+      mode: 
+        input: true
+        pullup: true
+    name: "Volume Down Button"
+    id: volume_down_button
+    on_press:
+      then:
+          - media_player.volume_down: player_speaker_id  
+         
+  - platform: gpio
+    pin: 
+      number: GPIO19
+      mode: 
+        input: true
+        pullup: true
+    name: "Volume Up Button"
+    id: volume_up_button
+    on_press:
+      then:
+        - media_player.volume_up: player_speaker_id   
